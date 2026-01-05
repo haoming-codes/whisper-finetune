@@ -1,1 +1,10 @@
-
+torch
+transformers
+datasets
+accelerate
+peft
+jiwer
+pyyaml
+wandb
+soundfile
+s3fs
