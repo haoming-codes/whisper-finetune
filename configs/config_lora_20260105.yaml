@@ -1,1 +1,81 @@
+seed: 42
 
+model:
+  name_or_path: openai/whisper-small
+  language: en
+  task: transcribe
+  gradient_checkpointing: true
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: ["q_proj", "v_proj"]
+  bias: "none"
+
+preprocessing:
+  num_proc: 4
+  max_label_length: 256
+
+data:
+  filters:
+    drop_empty_text: true
+
+  train:
+    - type: s3_jsonl
+      manifests:
+        - s3://andreihuang-us-west-2/benchmark/en/trainset_v3.5_augmented/manifest/manifest.jsonl
+      audio_column: audio
+      text_column: text
+
+    - type: hf
+      name: mozilla-foundation/common_voice_13_0
+      config: en
+      split: train
+      audio_column: audio
+      text_column: sentence
+
+  eval:
+    - type: s3_jsonl
+      manifests:
+        - s3://ehmli/ASR/datasets/en/CBT/AI树人ASR中英跑测-en_20251225/manifests/manifest.jsonl
+      audio_column: audio
+      text_column: text
+
+    - type: hf
+      name: mozilla-foundation/common_voice_13_0
+      config: en
+      split: validation
+      audio_column: audio
+      text_column: sentence
+
+training:
+  output_dir: null            # if null, script uses SM_OUTPUT_DATA_DIR/checkpoints
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 2
+  learning_rate: 1.0e-4
+  warmup_steps: 200
+  num_train_epochs: 3
+  fp16: true
+  bf16: false
+  dataloader_num_workers: 4
+
+  evaluation_strategy: steps
+  eval_steps: 500
+  save_steps: 500
+  logging_steps: 50
+  save_total_limit: 2
+
+  predict_with_generate: true
+  generation_max_length: 225
+
+  metric_for_best_model: wer
+  greater_is_better: false
+  load_best_model_at_end: true
+
+wandb:
+  enabled: true
+  project: whisper-lora
+  entity: your-team
+  name: whisper-small-lora-mix
