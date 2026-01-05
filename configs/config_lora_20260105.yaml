@@ -1,7 +1,7 @@
 seed: 42
 
 model:
-  name_or_path: openai/whisper-v3-large-turbo
+  name_or_path: openai/whisper-large-v3-turbo
   language: en
   task: transcribe
   gradient_checkpointing: true
